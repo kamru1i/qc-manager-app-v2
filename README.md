@@ -4,6 +4,17 @@
 
 ---
 
+## Releasing
+
+Release binaries are published to the **public** repo `bnfcorporate/qc-manager-releases`, because
+this repo is private and private release assets return 404 to the unauthenticated auto-updaters.
+Installed apps poll `https://chuti.bnfcorporate.com/updater/latest.json`, a URL baked into every
+build that must never change.
+
+Before tagging a release, always run `npm run version:sync` — `package.json`,
+`src-tauri/tauri.conf.json` and `src-tauri/Cargo.toml` must carry the same version or the updater
+will loop. See **[docs/RELEASING.md](docs/RELEASING.md)** for the full procedure.
+
 ## 🚀 Workspace Ecosystem
 
 The QC Manager consists of two primary corporate workspaces, accessible dynamically based on administrator-configured role permissions, user overrides, and global feature flags:

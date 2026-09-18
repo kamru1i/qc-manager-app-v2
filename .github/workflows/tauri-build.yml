@@ -12,9 +12,24 @@ on:
 
 jobs:
   # ──────────────────────────────────────────────────
+  # Job 0: Fail fast, before any paid macOS/Windows runner starts.
+  # A version mismatch between package.json and src-tauri/* ships a manifest whose
+  # version never matches the binary's, which makes the updater re-offer forever.
+  # ──────────────────────────────────────────────────
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify package.json / tauri.conf.json / Cargo.toml agree
+        run: node scripts/sync-version.js --check
+
+  # ──────────────────────────────────────────────────
   # Job 1: Build Tauri Desktop binaries (Windows/macOS/Linux)
   # ──────────────────────────────────────────────────
   build-tauri:
+    needs: verify
     permissions:
       contents: write
     strategy:
@@ -117,6 +132,7 @@ jobs:
   # Job 2: Build Android APK
   # ──────────────────────────────────────────────────
   build-android:
+    needs: verify
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -281,6 +297,8 @@ jobs:
       - name: Run release manifests, checksums, and OTA publisher script
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_REPO: bnfcorporate/qc-manager-releases
+          RELEASE_REPO_TOKEN: ${{ secrets.RELEASE_REPO_TOKEN }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: node scripts/generate-release-manifests.js

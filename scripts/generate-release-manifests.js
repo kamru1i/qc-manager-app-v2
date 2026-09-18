@@ -27,8 +27,11 @@ function getReleaseNotesForVersion(version) {
 }
 
 async function main() {
-  const token = process.env.GITHUB_TOKEN;
-  const repo = process.env.GITHUB_REPOSITORY; // "owner/repo"
+  // Binaries are published to a PUBLIC repo, because the source repo is private and its
+  // release assets 404 for the unauthenticated desktop/Android updaters. RELEASE_REPO and
+  // RELEASE_REPO_TOKEN select that repo; without them this falls back to the current repo.
+  const token = process.env.RELEASE_REPO_TOKEN || process.env.GITHUB_TOKEN;
+  const repo = process.env.RELEASE_REPO || process.env.GITHUB_REPOSITORY; // "owner/repo"
 
   if (!token || !repo) {
     console.warn('Warning: GITHUB_TOKEN or GITHUB_REPOSITORY not set. Generating local latest.json manifest for testing...');
