@@ -67,3 +67,7 @@ android/android-release-credentials.txt
 src/.route-backup/
 src/api_backup/
 __pycache__/
+
+# pnpm resolves its own versions and does not read package-lock.json, so committing
+# this alongside it would give CI and local builds two different dependency trees.
+pnpm-lock.yaml
