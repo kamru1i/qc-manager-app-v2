@@ -20,36 +20,34 @@ def main():
     if not raw_pass:
         print("WARNING: RAW_PASS environment variable is not set or empty.")
 
-    # The secret may hold the key either as plain text or base64-encoded.
-    #
-    # Two traps live here, and both produced the same silent failure before:
-    #   1. base64 stored without "=" padding raises binascii.Error, and the old code answered
-    #      that by passing the still-encoded value straight through.
-    #   2. an rsign/minisign key is TWO lines, so str.isprintable() is always False for it —
-    #      the old "looks like a key" check could never pass, even on a clean decode.
-    # Either way tauri received base64 and died with "failed to decode base64 secret key",
-    # after the full Rust toolchain had installed on a paid runner.
+    # Tauri base64-decodes TAURI_SIGNING_PRIVATE_KEY itself, so what it needs is VALID base64 —
+    # not the decoded key. Both failures on v8.0.2 were this misunderstanding from opposite sides:
+    #   "Invalid padding"              — base64 stored without its trailing "=" characters
+    #   "Invalid symbol 32, offset 9"  — the space in "untrusted comment:", i.e. plain text
+    # So normalise whatever is stored into padded base64, and prove it decodes to a real key
+    # before handing it to a 10x runner.
     def looks_like_key(text):
         return text.startswith("untrusted comment:") or "BEGIN" in text
 
     if looks_like_key(raw_key):
-        signing_key = raw_key
-        print("Signing key is already in plain text; using it as-is.")
+        signing_key = base64.b64encode(raw_key.encode("utf-8")).decode("ascii")
+        print("Signing key was stored as plain text; base64-encoded it for Tauri.")
     else:
+        padded = raw_key + "=" * (-len(raw_key) % 4)
         try:
-            padded = raw_key + "=" * (-len(raw_key) % 4)
             decoded = base64.b64decode(padded, validate=True).decode("utf-8")
         except Exception as exc:
             print(f"ERROR: signing key is neither plain text nor valid base64 ({exc}).")
             sys.exit(1)
-
         if not looks_like_key(decoded):
             print("ERROR: base64 decoded, but the result is not a recognisable signing key.")
             print("       Expected it to start with 'untrusted comment:' or contain 'BEGIN'.")
             sys.exit(1)
-
-        signing_key = decoded
-        print("Successfully decoded base64-encoded signing key.")
+        signing_key = padded
+        if padded != raw_key:
+            print(f"Signing key was missing {len(padded) - len(raw_key)} base64 padding char(s); restored.")
+        else:
+            print("Signing key is valid base64.")
 
     # Actions masks the secret exactly as stored — the base64 form. Decoding produces a
     # DIFFERENT string that masking does not know about, so anything echoing the environment
