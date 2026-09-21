@@ -25,6 +25,26 @@ jobs:
       - name: Verify package.json / tauri.conf.json / Cargo.toml agree
         run: node scripts/sync-version.js --check
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The real gate. A route that needs a server, or a type error, fails the static export —
+      # and without this it fails on the 2x Windows and 10x macOS runners instead, after the
+      # whole Rust toolchain has installed. Here it costs ~2 minutes at 1x.
+      - name: Smoke-build the static export
+        run: npm run build:static
+        env:
+          IS_CAPACITOR_BUILD: "true"
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+
   # ──────────────────────────────────────────────────
   # Job 1: Build Tauri Desktop binaries (Windows/macOS/Linux)
   # ──────────────────────────────────────────────────
@@ -67,12 +87,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build frontend static assets
-        run: npm run build:tauri
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+      # No explicit Next build here: src-tauri/tauri.conf.json sets
+      # "beforeBuildCommand": "npm run build:tauri", so tauri-action runs it itself with the same
+      # env. Doing it twice doubled the Next build on every Windows (2x) and macOS (10x) runner.
 
       - name: Prepare signing key and password
         shell: bash
@@ -158,7 +175,7 @@ jobs:
         run: npm ci
 
       - name: Build Next.js static files
-        run: IS_CAPACITOR_BUILD=true npm run build
+        run: IS_CAPACITOR_BUILD=true npm run build:static
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
@@ -288,7 +305,7 @@ jobs:
         run: npm ci
 
       - name: Build Next.js static files
-        run: IS_CAPACITOR_BUILD=true npm run build
+        run: IS_CAPACITOR_BUILD=true npm run build:static
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}

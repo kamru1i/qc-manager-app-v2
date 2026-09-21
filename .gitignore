@@ -62,3 +62,8 @@ CLAUDE.md
 android/*.jks
 android/keystore-base64.txt
 android/android-release-credentials.txt
+# Temporary home for server-only routes during static export builds (scripts/build-tauri.js).
+# Left behind if a build is interrupted — never commit it.
+src/.route-backup/
+src/api_backup/
+__pycache__/

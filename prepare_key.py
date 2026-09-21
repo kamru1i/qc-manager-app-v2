@@ -35,6 +35,16 @@ def main():
         signing_key = raw_key
         print("Key is not base64-encoded; using raw value directly.")
 
+    # Actions masks the secret exactly as stored — the base64 form. Decoding produces a
+    # DIFFERENT string that masking does not know about, so anything echoing the environment
+    # would print the private key in plain text. Register the decoded form too.
+    # ::add-mask:: matches one line at a time, and an rsign key is two lines.
+    for line in signing_key.splitlines():
+        if line.strip():
+            print(f"::add-mask::{line}")
+    if raw_pass:
+        print(f"::add-mask::{raw_pass}")
+
     # Write to GITHUB_ENV so downstream steps can read them
     github_env = os.environ.get("GITHUB_ENV", "")
     if github_env:
