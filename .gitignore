@@ -71,3 +71,6 @@ __pycache__/
 # pnpm resolves its own versions and does not read package-lock.json, so committing
 # this alongside it would give CI and local builds two different dependency trees.
 pnpm-lock.yaml
+
+# logs and dumps
+*.log
