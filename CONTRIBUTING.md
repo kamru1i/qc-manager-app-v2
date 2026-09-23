@@ -10,7 +10,7 @@ delwer / kamrul  →  develop  →  main
 | `delwer`  | Delwer          | নিজের কাজ এখানে push |
 | `kamrul`  | Kamrul          | নিজের কাজ এখানে push |
 | `develop` | সবাই (PR দিয়ে) | সরাসরি push নয়, শুধু PR |
-| `main`    | শুধু PR দিয়ে    | **Delwer (@delwerhossain) বা @bnfcorporate-এর approval লাগবে** |
+| `main`    | শুধু PR দিয়ে    | @bnfcorporate-এর approval লাগবে** |
 
 ## প্রতিদিনের কাজ
 
