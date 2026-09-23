@@ -10,7 +10,7 @@ delwer / kamrul  →  develop  →  main
 | `delwer`  | Delwer          | নিজের কাজ এখানে push |
 | `kamrul`  | Kamrul          | নিজের কাজ এখানে push |
 | `develop` | সবাই (PR দিয়ে) | সরাসরি push নয়, শুধু PR |
-| `main`    | শুধু PR দিয়ে    | **Delwer (@delwerhossain) বা @bnfcorporate-এর approval লাগবে** |
+| `main`    | শুধু PR দিয়ে    | @bnfcorporate-এর approval লাগবে** |
 
 ## প্রতিদিনের কাজ
 
@@ -28,7 +28,7 @@ git push origin kamrul
 
 1. `develop`-এ সব ঠিক থাকলে `develop` → `main` PR খোলো।
 2. `PR Check` সবুজ হতে হবে।
-3. Delwer বা bnfcorporate approve করলে merge।
+3. bnfcorporate approve করলে merge।
 4. রিলিজ বানাতে হলে `main`-এ version tag দাও (`v8.0.3` ইত্যাদি)। শুধু tag দিলেই build শুরু হয়।
 
 ## মনে রাখো
